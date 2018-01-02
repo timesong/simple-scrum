@@ -1,0 +1,22 @@
+= form_tag "#", :id =>"new-issue-form", :class => "modal" do
+    %h3
+        New issue
+    = hidden_field_tag :project, project.id
+    = hidden_field_tag :version, version.id
+    = hidden_field_tag :product_backlog, product_backlog.id
+    = hidden_field_tag :status, 1
+    %p
+        %label
+            Subject
+        = text_field_tag :subject, "", :size => 10, :maxlength => 255, :required => true
+    -# %p
+    -#     %label
+    -#         Assigned to
+    -#     = select_tag :assigned_to
+    %p
+        %label
+            Description
+        = text_area_tag :description, "", :rows => 3
+    %p{:style => "text-align:right;"}
+        = button_tag "Submit", :type => "button", :class => "submit"
+        = button_tag "Cancel", :type => "button", :class => "cancel"

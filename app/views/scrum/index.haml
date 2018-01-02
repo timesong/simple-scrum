@@ -1,0 +1,97 @@
+- content_for :header_tags do
+    = stylesheet_link_tag 'scrum', :plugin => 'scrum'
+    = stylesheet_link_tag 'jquery.modal.min', :plugin => 'scrum'
+
+%div.contextual
+    %label
+        当前版本：
+    = select_tag('filter_ver', options_for_select(@scrum.versions), {})
+    = link_to('新建 Sprint', '#', {:class => 'icon icon-add'})
+
+-# - content_for :sidebar do
+-#     %h3
+-#         = @scrum
+
+-#     %ul
+-#         - @scrum.versions.each do |ver|
+-#             %li
+-#                 = link_to(ver.name, '#')
+-#         %li
+-#             = link_to('全部', '#')
+
+%h2
+    Scrum 管理：
+    = @scrum
+
+%div.version-article.version-incompleted.version-open
+    -# %header
+    -#     %h3.icon.icon-package.version
+    -#         = @scrum.cur_ver
+    -# %div.splitcontentleft
+    -#     %div.issues.box
+    -#         %h3.icon.icon-issue
+    -#             Product backlog items
+    -# %div.splitcontentright
+    -#     %div.issues.box
+    -#         %h3.icon.icon-issue
+    -#             Sprint list
+    %div#backlogs{:data => @scrum.product_backlog.id}
+        %div{:style => "margin: 8px 0;"}
+            = link_to('新建 PBI', 'javascript:$("#new-issue-form").modal();', {:class => 'icon icon-add'})
+
+        %div.kanban
+            %div.board
+                %div.board-column.backlog
+                    %div.board-column-header
+                        Product backlog items
+                        %strong
+                            (#{@scrum.product_backlog.pbis.size})
+                    %div.board-column-content
+                        - @scrum.product_backlog.pbis.each do |pbi|
+                            %div.board-item{:data => pbi.id}
+                                %div.board-item-content
+                                    = pbi.tracker.name unless pbi.tracker.nil?
+                                    = link_to("##{pbi.id}", '#')
+                                    = link_to('到 Sprint', "javascript:void(0);", {:class => 'icon icon-workflows workflows contextual', :onclick => "move_to_sprint(#{pbi.id}, #{@scrum.cur_sprint.id});"})
+                                    %p
+                                        = pbi.description
+        %div{:style => "clear: both"}
+        %div{:style => "margin: 8px 0;"}
+            = link_to('新建 PBI', 'javascript:$("#new-issue-form").modal();', {:class => 'icon icon-add'})
+
+    %div#sprints
+        %div.tabs.hide-when-print
+            %ul
+                - @scrum.sprints.each do |sp|
+                    %li
+                        = link_to(sp.name, project_scrum_path(project_id: @scrum.project.identifier, version_id: @scrum.cur_ver.id, sprint_id: sp.id),
+                            {:class => (sp == @scrum.cur_sprint ? 'selected': ''), :title => sp.description})
+
+        %ol.board-column-list.kanban
+            - @scrum.statuses.each_with_index do |st, index|
+                %li
+                    %div.board
+                        %div.board-column{:class => ["new", "working", "done", "feedback", "close", "refuse"][index]}
+                            %div.board-column-header
+                                = st.name
+                                %strong
+                                    (#{@scrum.cur_sprint.pbis(st).size})
+                            %div.board-column-content
+                                - @scrum.cur_sprint.pbis(st).each do |pbi|
+                                    %div.board-item
+                                        %div.board-item-content
+                                            %span
+                                                = pbi.tracker.name unless pbi.tracker.nil?
+                                                = link_to("##{pbi.id}", '#')
+                                            %p
+                                                = pbi.description
+
+        %div{:style => "clear: both"}
+%div{:style => "clear: both"}
+
+= render partial: 'new_issue_modal', locals: { project: @scrum.project, version: @scrum.cur_ver, product_backlog: @scrum.product_backlog }
+
+= javascript_include_tag 'vendor/hammer-2.0.8.min', :plugin => 'scrum'
+= javascript_include_tag 'vendor/muuri.min', :plugin => 'scrum'
+= javascript_include_tag 'vendor/jquery.modal.min', :plugin => 'scrum'
+= javascript_include_tag 'scrum', :plugin => 'scrum'
